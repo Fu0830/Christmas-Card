@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>圣诞贺卡工坊 · 自定义你的专属圣诞卡</title>
+<link rel="stylesheet" href="https://miaoda.feishu.cn/fonts/css2?family=Noto+Serif+SC:wght@500;700;900&family=Noto+Sans+SC:wght@300;400;500;700&display=swap">
+<style>
+  :root{
+    --bg1:#16233a; --bg2:#0e1828;
+    --panel:#1f2f47; --panel2:#263954;
+    --line:#3a5070; --text:#f3f6fb; --muted:#a9bcd4;
+    --accent:#e05555; --gold:#f3c969;
+    --radius:18px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+    color:var(--text);
+    background:
+      radial-gradient(1200px 700px at 80% -10%, #2a4266 0%, transparent 60%),
+      radial-gradient(1000px 600px at -10% 110%, #33243d 0%, transparent 55%),
+      linear-gradient(160deg,var(--bg1),var(--bg2));
+    min-height:100vh;
+    padding:24px 18px 60px;
+  }
+  .wrap{max-width:1180px;margin:0 auto}
+  header.top{text-align:center;margin-bottom:22px}
+  header.top h1{
+    font-family:"Noto Serif SC",serif;font-weight:900;font-size:30px;letter-spacing:2px;
+    background:linear-gradient(90deg,#ffd98a,#ff9d9d,#9fd8ff);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+  header.top p{color:var(--muted);margin-top:8px;font-size:14px}
+  .layout{display:grid;grid-template-columns:380px 1fr;gap:22px;align-items:start}
+  @media (max-width:920px){.layout{grid-template-columns:1fr}}
+
+  .panel{
+    background:linear-gradient(180deg,var(--panel),var(--panel2));
+    border:1px solid var(--line);border-radius:var(--radius);
+    padding:20px;box-shadow:0 18px 40px rgba(0,0,0,.35);
+  }
+  .panel h2{font-size:15px;letter-spacing:1px;color:var(--gold);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+  .panel h2::before{content:"";width:6px;height:16px;border-radius:3px;background:var(--accent)}
+  .field{margin-bottom:14px}
+  .field label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
+  .field input[type=text],.field textarea{
+    width:100%;background:#16233a;border:1px solid var(--line);border-radius:12px;
+    color:var(--text);padding:10px 12px;font-size:14px;font-family:inherit;outline:none;
+    transition:border-color .2s;
+  }
+  .field input:focus,.field textarea:focus{border-color:var(--gold)}
+  .field textarea{resize:vertical;min-height:84px;line-height:1.7}
+  .colors{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+  .color-item{display:flex;align-items:center;gap:10px;background:#16233a;border:1px solid var(--line);border-radius:12px;padding:8px 10px}
+  .color-item input[type=color]{
+    width:38px;height:38px;border:none;border-radius:10px;background:none;cursor:pointer;padding:0;
+  }
+  .color-item input[type=color]::-webkit-color-swatch-wrapper{padding:0}
+  .color-item input[type=color]::-webkit-color-swatch{border:1px solid var(--line);border-radius:10px}
+  .color-item span{font-size:13px}
+  .presets{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+  .chip{
+    border:1px solid var(--line);background:#16233a;color:var(--text);border-radius:999px;
+    padding:7px 13px;font-size:13px;cursor:pointer;transition:all .15s;
+  }
+  .chip:hover{border-color:var(--gold);color:var(--gold)}
+  .chip.active{background:var(--gold);color:#2a1f05;border-color:var(--gold);font-weight:600}
+
+  .stage{position:sticky;top:20px}
+  .canvas-box{
+    background:linear-gradient(180deg,#20324e,#18263c);
+    border:1px solid var(--line);border-radius:var(--radius);padding:18px;
+    display:flex;justify-content:center;box-shadow:0 18px 40px rgba(0,0,0,.35);
+  }
+  canvas#stage{width:100%;max-width:520px;height:auto;border-radius:14px;display:block}
+  .actions{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:16px}
+  .btn{
+    border:none;border-radius:14px;padding:14px 12px;font-size:14px;font-weight:600;cursor:pointer;
+    font-family:inherit;letter-spacing:.5px;transition:transform .12s,filter .15s;
+  }
+  .btn:active{transform:scale(.97)}
+  .btn.primary{background:linear-gradient(135deg,#e05555,#c93a3a);color:#fff}
+  .btn.gold{background:linear-gradient(135deg,#f3c969,#e0a93f);color:#2a1f05}
+  .btn.ghost{background:#263954;color:var(--text);border:1px solid var(--line)}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+  .hint{margin-top:12px;font-size:12.5px;color:var(--muted);text-align:center;line-height:1.7}
+  .toast{
+    position:fixed;left:50%;bottom:34px;transform:translateX(-50%) translateY(20px);
+    background:#0e1828;border:1px solid var(--gold);color:var(--gold);padding:12px 20px;
+    border-radius:12px;font-size:14px;opacity:0;pointer-events:none;transition:all .25s;z-index:99;
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>🎄 圣诞贺卡工坊</h1>
+    <p>拖动颜色、写下祝福，定制一张精致可爱的圣诞卡，可保存图片与翻开动画视频</p>
+  </header>
+
+  <div class="layout">
+    <!-- ===== 控制面板 ===== -->
+    <section class="panel">
+      <h2>✍️ 贺卡文案</h2>
+      <div class="field"><label>收件人（称呼）</label><input type="text" id="inTo" maxlength="20" value="亲爱的小鱼饼饼"></div>
+      <div class="field"><label>封面标题</label><input type="text" id="inTitle" maxlength="30" value="Merry Christmas"></div>
+      <div class="field"><label>祝福内容（可换行）</label><textarea id="inMsg" maxlength="200">愿这个冬天有雪花、有灯火、有热可可，
+也有被温柔包裹的好运气。
+新的一年，平安喜乐，万事胜意。</textarea></div>
+      <div class="field"><label>署名</label><input type="text" id="inFrom" maxlength="20" value="—— 豆包"></div>
+      <div class="field"><label>日期</label><input type="text" id="inDate" maxlength="20" value="2026.12.25"></div>
+
+      <h2 style="margin-top:22px">🎨 圣诞树配色</h2>
+      <div class="colors">
+        <div class="color-item"><input type="color" id="cTree" value="#1f7a4d"><span>树身</span></div>
+        <div class="color-item"><input type="color" id="cOrn" value="#d94141"><span>装饰球</span></div>
+        <div class="color-item"><input type="color" id="cLight" value="#ffd25e"><span>灯串</span></div>
+        <div class="color-item"><input type="color" id="cStar" value="#ffe9a8"><span>顶星</span></div>
+        <div class="color-item"><input type="color" id="cGift" value="#c94f4f"><span>礼物盒</span></div>
+        <div class="color-item"><input type="color" id="cAccent" value="#c94f4f"><span>卡片描边</span></div>
+        <div class="color-item"><input type="color" id="cBg" value="#0e2a47"><span>背景夜色</span></div>
+        <div class="color-item"><input type="color" id="cCard" value="#fff8ee"><span>卡片底色</span></div>
+      </div>
+      <div class="presets" id="presets"></div>
+    </section>
+
+    <!-- ===== 预览与导出 ===== -->
+    <section class="stage">
+      <div class="canvas-box"><canvas id="stage" width="1080" height="1440"></canvas></div>
+      <div class="actions">
+        <button class="btn ghost" id="btnFlip">📖 翻开看看</button>
+        <button class="btn gold" id="btnImgCover">🖼 保存封面图</button>
+        <button class="btn gold" id="btnImgInside">🖼 保存内页图</button>
+        <button class="btn primary" id="btnVideo">🎬 录制翻卡视频</button>
+      </div>
+      <p class="hint">视频将自动录制完整的「封面 → 翻开 → 内页」动画，结束后自动下载；图片为高清 PNG。</p>
+    </section>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================
+ * 状态与常量
+ * ============================================================ */
+const W = 1080, H = 1440;
+const canvas = document.getElementById('stage');
+const ctx = canvas.getContext('2d');
+
+const state = {
+  to: "亲爱的小鱼饼饼",
+  title: "Merry Christmas",
+  msg: "愿这个冬天有雪花、有灯火、有热可可，\n也有被温柔包裹的好运气。\n新的一年，平安喜乐，万事胜意。",
+  from: "—— 豆包",
+  date: "2026.12.25",
+  col: {
+    tree:"#1f7a4d", ornament:"#d94141", light:"#ffd25e", star:"#ffe9a8",
+    gift:"#c94f4f", accent:"#c94f4f", bg:"#0e2a47", card:"#fff8ee"
+  }
+};
+
+const PRESETS = [
+  {name:"经典圣诞", col:{tree:"#1f7a4d",ornament:"#d94141",light:"#ffd25e",star:"#ffe9a8",gift:"#c94f4f",accent:"#c94f4f",bg:"#0e2a47",card:"#fff8ee"}},
+  {name:"樱花粉",   col:{tree:"#8fbf8f",ornament:"#ffffff",light:"#ffe3ec",star:"#ffd166",gift:"#e58bb0",accent:"#d97ba1",bg:"#3a2440",card:"#fff5f7"}},
+  {name:"星空蓝",   col:{tree:"#3d6ea5",ornament:"#ffd25e",light:"#9fd8ff",star:"#ffd25e",gift:"#7a6fc0",accent:"#5a7fc9",bg:"#141b3a",card:"#f3f7ff"}},
+  {name:"抹茶暖冬", col:{tree:"#6f9f5e",ornament:"#e8b4b8",light:"#ffe8a3",star:"#f6d365",gift:"#c98a5e",accent:"#a8763e",bg:"#2c3a2a",card:"#fbf7ec"}},
+  {name:"梦幻紫金", col:{tree:"#5a4a78",ornament:"#e8c46a",light:"#ffd98a",star:"#ffe9a8",gift:"#8a5a6e",accent:"#9a7bb8",bg:"#241a33",card:"#fbf3e4"}}
+];
+
+/* 种子随机：保证每次绘制位置一致，导出图/视频与预览相同 */
+function mulberry(seed){return function(){seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const rnd = mulberry(20261225);
+const SNOW = Array.from({length:42},()=>({
+  x:rnd()*W, y:rnd()*H, r:2+rnd()*5, o:.25+rnd()*.55
+}));
+
+/* ============================================================
+ * 工具函数
+ * ============================================================ */
+function hexToRgb(h){
+  h=h.replace('#',''); if(h.length===3)h=h.split('').map(c=>c+c).join('');
+  const n=parseInt(h,16); return {r:(n>>16)&255,g:(n>>8)&255,b:n&255};
+}
+function mix(hex,target,amt){
+  const a=hexToRgb(hex), b=hexToRgb(target);
+  const r=Math.round(a.r+(b.r-a.r)*amt), g=Math.round(a.g+(b.g-a.g)*amt), bl=Math.round(a.b+(b.b-a.b)*amt);
+  return `rgb(${r},${g},${bl})`;
+}
+function rgba(hex,alpha){const c=hexToRgb(hex);return `rgba(${c.r},${c.g},${c.b},${alpha})`}
+
+function wrapText(c,text,maxW){
+  const lines=[];
+  text.split('\n').forEach(para=>{
+    let line='';
+    for(const ch of para){
+      if(c.measureText(line+ch).width>maxW && line){lines.push(line);line=ch;}
+      else line+=ch;
+    }
+    lines.push(line);
+  });
+  return lines;
+}
+function roundRect(c,x,y,w,h,r){
+  c.beginPath();
+  c.moveTo(x+r,y);
+  c.arcTo(x+w,y,x+w,y+h,r);
+  c.arcTo(x+w,y+h,x,y+h,r);
+  c.arcTo(x,y+h,x,y,r);
+  c.arcTo(x,y,x+w,y,r);
+  c.closePath();
+}
+
+/* ============================================================
+ * 基础装饰：雪花 / 星星 / 礼物盒
+ * ============================================================ */
+function drawSnowOn(c,alpha=1){
+  SNOW.forEach(s=>{
+    c.beginPath();
+    c.fillStyle=`rgba(255,255,255,${s.o*alpha})`;
+    c.arc(s.x,s.y,s.r,0,Math.PI*2);
+    c.fill();
+  });
+}
+function drawStarOn(c,cx,cy,outer,inner,points,color){
+  c.save();c.beginPath();
+  for(let i=0;i<points*2;i++){
+    const r=i%2===0?outer:inner;
+    const a=(Math.PI/points)*i-Math.PI/2;
+    const x=cx+Math.cos(a)*r, y=cy+Math.sin(a)*r;
+    i===0?c.moveTo(x,y):c.lineTo(x,y);
+  }
+  c.closePath();c.fillStyle=color;c.fill();c.restore();
+}
+function drawGiftOn(c,x,y,w,h,body,ribbon){
+  c.fillStyle=body;roundRect(c,x,y,w,h,10);c.fill();
+  c.fillStyle=rgba('#000000',.12);roundRect(c,x,y,w,h,10);c.fill();
+  c.fillStyle=ribbon;
+  c.fillRect(x+w/2-w*0.09,y,w*0.18,h);
+  c.fillRect(x,y+h*0.38,w,h*0.18);
+  c.beginPath();c.fillStyle=ribbon;
+  c.ellipse(x+w/2-w*0.12,y-6,w*0.13,12,-0.5,0,Math.PI*2);
+  c.ellipse(x+w/2+w*0.12,y-6,w*0.13,12,0.5,0,Math.PI*2);c.fill();
+}
+
+/* ============================================================
+ * 圣诞树（连贯三层圆润树冠 + 雪绒边 + 装饰）
+ * ============================================================ */
+function drawTreeOn(c,cx,baseY,treeH,pal){
+  /* 三层：[顶点距顶, 层高, 底宽] */
+  const layers=[
+    {apex:0.00, h:0.44, w:0.40},
+    {apex:0.24, h:0.44, w:0.55},
+    {apex:0.50, h:0.42, w:0.68}
+  ];
+  layers.forEach((L,i)=>{
+    const topY=baseY-treeH+L.apex*treeH;
+    const botY=topY+L.h*treeH;
+    const w=L.w*treeH;
+    const grad=c.createLinearGradient(cx,topY,cx,botY);
+    grad.addColorStop(0,mix(pal.tree,'#ffffff',0.20));
+    grad.addColorStop(1,mix(pal.tree,'#000000',0.14));
+    c.beginPath();
+    c.moveTo(cx,topY);
+    c.bezierCurveTo(cx-w*0.20,topY+L.h*treeH*0.28, cx-w*0.46,topY+L.h*treeH*0.55, cx-w/2,botY-L.h*treeH*0.10);
+    c.quadraticCurveTo(cx-w*0.30,botY+L.h*treeH*0.06, cx-w*0.16,botY);
+    c.quadraticCurveTo(cx,botY+L.h*treeH*0.05, cx+w*0.16,botY);
+    c.quadraticCurveTo(cx+w*0.30,botY+L.h*treeH*0.06, cx+w/2,botY-L.h*treeH*0.10);
+    c.bezierCurveTo(cx+w*0.46,topY+L.h*treeH*0.55, cx+w*0.20,topY+L.h*treeH*0.28, cx,topY);
+    c.closePath();
+    c.fillStyle=grad;c.fill();
+    /* 雪绒描边 */
+    c.lineWidth=Math.max(2,treeH*0.008);
+    c.strokeStyle="rgba(255,255,255,.28)";
+    c.stroke();
+  });
+
+  /* 装饰球（相对树高定位） */
+  const ballR=treeH*0.026;
+  const balls=[[-0.26,0.84],[-0.04,0.78],[-0.30,0.60],[0.24,0.64],[0.06,0.52],[-0.18,0.40],[0.20,0.36],[0.00,0.24]];
+  balls.forEach((b,idx)=>{
+    const bx=cx+b[0]*treeH*0.32;
+    const by=baseY-treeH+b[1]*treeH;
+    c.beginPath();
+    c.fillStyle=idx%3===2?pal.light:pal.ornament;
+    c.arc(bx,by,ballR,0,Math.PI*2);c.fill();
+    c.beginPath();
+    c.fillStyle="rgba(255,255,255,.55)";
+    c.arc(bx-ballR*0.3,by-ballR*0.3,ballR*0.28,0,Math.PI*2);c.fill();
+  });
+
+  /* 灯串光点 */
+  const lights=[[-0.34,0.90],[-0.14,0.76],[0.18,0.72],[0.32,0.60],[-0.22,0.52],[0.12,0.44],[-0.10,0.32],[0.05,0.20]];
+  lights.forEach(l=>{
+    const lx=cx+l[0]*treeH*0.32, ly=baseY-treeH+l[1]*treeH;
+    c.save();
+    c.shadowColor=pal.light;c.shadowBlur=14;
+    c.beginPath();c.fillStyle=pal.light;
+    c.arc(lx,ly,ballR*0.55,0,Math.PI*2);c.fill();
+    c.restore();
+  });
+
+  /* 顶星 */
+  const starY=baseY-treeH-treeH*0.035;
+  c.save();
+  c.shadowColor=pal.star;c.shadowBlur=26;
+  drawStarOn(c,cx,starY,treeH*0.075,treeH*0.034,5,pal.star);
+  c.restore();
+
+  /* 树底积雪 */
+  c.beginPath();
+  c.fillStyle="rgba(255,255,255,.92)";
+  c.ellipse(cx,baseY+6,treeH*0.32,24,0,0,Math.PI*2);c.fill();
+
+  /* 礼物盒（左右错开） */
+  drawGiftOn(c,cx-treeH*0.36,baseY-treeH*0.10, treeH*0.18,treeH*0.14,pal.gift,pal.light);
+  drawGiftOn(c,cx+treeH*0.19,baseY-treeH*0.085,treeH*0.16,treeH*0.125,mix(pal.gift,'#ffffff',.12),pal.star);
+}
+
+/* ============================================================
+ * 背景 / 卡片框
+ * ============================================================ */
+function drawBackgroundOn(c){
+  const g=c.createLinearGradient(0,0,0,H);
+  g.addColorStop(0,state.col.bg);
+  g.addColorStop(1,mix(state.col.bg,'#000000',0.35));
+  c.fillStyle=g;c.fillRect(0,0,W,H);
+  drawSnowOn(c);
+}
+function cardFrameOn(c){
+  const m=64;
+  c.save();
+  c.shadowColor="rgba(0,0,0,.45)";c.shadowBlur=40;c.shadowOffsetY=18;
+  roundRect(c,m,m,W-m*2,H-m*2,36);
+  c.fillStyle=state.col.card;c.fill();
+  c.restore();
+  c.lineWidth=6;c.strokeStyle=state.col.accent;
+  roundRect(c,m,m,W-m*2,H-m*2,36);c.stroke();
+  c.lineWidth=2;c.strokeStyle=rgba(state.col.accent,.4);
+  roundRect(c,m+18,m+18,W-m*2-36,H-m*2-36,26);c.stroke();
+}
+
+/* ============================================================
+ * 封面 / 内页
+ * ============================================================ */
+function drawCoverOn(c){
+  drawBackgroundOn(c);
+  cardFrameOn(c);
+  const cx=W/2;
+
+  c.textAlign="center";
+  c.fillStyle=state.col.accent;
+  c.font=`500 30px "Noto Serif SC",serif`;
+  c.fillText("✦ · ✦ · ✦",cx,170);
+
+  drawTreeOn(c,cx,980,560,state.col);
+
+  c.fillStyle=state.col.accent;
+  c.font=`900 76px "Noto Serif SC",serif`;
+  c.fillText(state.title||"Merry Christmas",cx,1150);
+  c.fillStyle=mix(state.col.accent,'#000000',0.15);
+  c.font=`500 34px "Noto Sans SC",sans-serif`;
+  c.fillText(`致 ${state.to}`,cx,1220);
+
+  c.fillStyle=rgba(state.col.accent,.75);
+  c.font=`400 26px "Noto Sans SC",sans-serif`;
+  c.fillText("🎄  愿喜乐常伴 · 暖意如常  🎄",cx,1300);
+}
+
+function drawInsideOn(c){
+  drawBackgroundOn(c);
+  cardFrameOn(c);
+  const m=64, innerL=m+70, innerR=W-m-70;
+  const innerW=innerR-innerL;
+
+  c.textAlign="center";
+  c.fillStyle=state.col.accent;
+  c.font=`900 46px "Noto Serif SC",serif`;
+  c.fillText(state.title||"Merry Christmas",W/2,250);
+  c.strokeStyle=rgba(state.col.accent,.35);c.lineWidth=2;
+  c.beginPath();c.moveTo(W/2-180,290);c.lineTo(W/2+180,290);c.stroke();
+
+  c.textAlign="left";
+  c.fillStyle=state.col.accent;
+  c.font=`700 44px "Noto Serif SC",serif`;
+  c.fillText(state.to,innerL,400);
+
+  c.fillStyle="#3a3328";
+  c.font=`400 34px "Noto Sans SC",sans-serif`;
+  const lines=wrapText(c,state.msg,innerW);
+  let y=490; const lh=64;
+  lines.forEach(line=>{c.fillText(line,innerL,y);y+=lh;});
+
+  drawTreeOn(c,innerL+120,1180,250,state.col);
+
+  c.textAlign="right";
+  c.fillStyle=state.col.accent;
+  c.font=`500 34px "Noto Serif SC",serif`;
+  c.fillText(state.from,innerR,1080);
+  c.fillStyle="rgba(58,51,40,.6)";
+  c.font=`400 28px "Noto Sans SC",sans-serif`;
+  c.fillText(state.date,innerR,1135);
+
+  c.textAlign="center";
+  c.font=`30px "Noto Sans SC",sans-serif`;
+  c.fillText("🎅 ❄️ 🎁 ❄️ 🦌",W/2,1300);
+}
+
+/* 全局 ctx 版本（预览用），委托到 On 版本 */
+function drawCover(){drawCoverOn(ctx);}
+function drawInside(){drawInsideOn(ctx);}
+
+/* 翻页进度渲染：p=0 封面，p=1 内页 */
+function renderProgress(p){
+  drawInside();
+  if(p<1){
+    const w=W*(1-p);
+    ctx.save();
+    ctx.beginPath();ctx.rect(0,0,w,H);ctx.clip();
+    drawCover();
+    const g=ctx.createLinearGradient(w-80,0,w,0);
+    g.addColorStop(0,"rgba(0,0,0,0)");
+    g.addColorStop(1,"rgba(0,0,0,0.30)");
+    ctx.fillStyle=g;ctx.fillRect(w-80,0,80,H);
+    ctx.restore();
+  }
+}
+
+/* ============================================================
+ * 动画播放（预览 / 录制共用）
+ * ============================================================ */
+const FLIP = {hold1:0.5, flip:2.2, hold2:0.7};
+const TOTAL = FLIP.hold1+FLIP.flip+FLIP.hold2;
+let rafId=null, playing=false, startTime=0, onEnd=null;
+
+function easeOut(x){return 1-Math.pow(1-x,3)}
+function easeIn(x){return x*x*x}
+
+function timeline(now){
+  const t=(now-startTime)/1000;
+  let p;
+  if(t<FLIP.hold1) p=0;
+  else if(t<FLIP.hold1+FLIP.flip){
+    const k=(t-FLIP.hold1)/FLIP.flip;
+    p=k<0.5? easeOut(k*2)/2 : (1+easeIn((k-0.5)*2))/2;
+  } else p=1;
+  renderProgress(Math.min(1,Math.max(0,p)));
+  if(t<TOTAL && playing){ rafId=requestAnimationFrame(timeline); }
+  else { playing=false; renderProgress(1); if(onEnd)onEnd(); }
+}
+function playAnim(cb){
+  if(playing) return;
+  playing=true; onEnd=cb||null;
+  startTime=performance.now();
+  rafId=requestAnimationFrame(timeline);
+}
+
+/* ============================================================
+ * 导出图片
+ * ============================================================ */
+function download(url,name){
+  const a=document.createElement('a');a.href=url;a.download=name;
+  document.body.appendChild(a);a.click();a.remove();
+}
+function exportPage(which,name){
+  const off=document.createElement('canvas');off.width=W;off.height=H;
+  const c=off.getContext('2d');
+  if(which==='cover'){drawCoverOn(c);}else{drawInsideOn(c);}
+  download(off.toDataURL('image/png'),name);
+  toast('图片已保存 ✨');
+}
+
+/* ============================================================
+ * 视频录制
+ * ============================================================ */
+let recorder=null, chunks=[], recording=false;
+
+function pickMime(){
+  const list=["video/mp4;codecs=avc1.42E01E","video/mp4","video/webm;codecs=vp9","video/webm"];
+  if(typeof MediaRecorder==='undefined')return null;
+  return list.find(m=>MediaRecorder.isTypeSupported(m))||null;
+}
+function recordVideo(){
+  if(recording)return;
+  const mime=pickMime();
+  if(!mime){toast('当前浏览器不支持视频录制');return;}
+  const stream=canvas.captureStream(30);
+  chunks=[];
+  recorder=new MediaRecorder(stream,{mimeType:mime,videoBitsPerSecond:8_000_000});
+  recorder.ondataavailable=e=>{if(e.data.size)chunks.push(e.data);};
+  recorder.onstop=()=>{
+    const type=recorder.mimeType||mime;
+    const blob=new Blob(chunks,{type});
+    const url=URL.createObjectURL(blob);
+    const ext=type.includes('mp4')?'mp4':'webm';
+    download(url,`圣诞贺卡翻页.${ext}`);
+    setTimeout(()=>URL.revokeObjectURL(url),4000);
+    recording=false;
+    btnVideo.disabled=false;btnVideo.textContent='🎬 录制翻卡视频';
+    toast('视频已保存 🎬');
+  };
+  recording=true;
+  btnVideo.disabled=true;btnVideo.textContent='⏺ 录制中…';
+  recorder.start();
+  playAnim(()=>{ setTimeout(()=>{ if(recorder.state!=='inactive')recorder.stop(); },300); });
+}
+
+/* ============================================================
+ * 控件绑定
+ * ============================================================ */
+const $=id=>document.getElementById(id);
+const inputs={to:$('inTo'),title:$('inTitle'),msg:$('inMsg'),from:$('inFrom'),date:$('inDate')};
+const colorInputs={tree:$('cTree'),ornament:$('cOrn'),light:$('cLight'),star:$('cStar'),gift:$('cGift'),accent:$('cAccent'),bg:$('cBg'),card:$('cCard')};
+
+function syncState(){
+  state.to=inputs.to.value;state.title=inputs.title.value;state.msg=inputs.msg.value;
+  state.from=inputs.from.value;state.date=inputs.date.value;
+  Object.keys(colorInputs).forEach(k=>state.col[k]=colorInputs[k].value);
+}
+let currentPage=0;
+function redraw(){syncState();renderProgress(currentPage);}
+
+Object.values(inputs).forEach(el=>el.addEventListener('input',redraw));
+Object.values(colorInputs).forEach(el=>el.addEventListener('input',()=>{redraw();clearActivePreset();}));
+
+/* 预设配色 */
+const presetBox=$('presets');
+PRESETS.forEach((p)=>{
+  const b=document.createElement('button');b.className='chip';b.textContent=p.name;
+  b.addEventListener('click',()=>{
+    Object.keys(p.col).forEach(k=>{state.col[k]=p.col[k];colorInputs[k].value=p.col[k];});
+    [...presetBox.children].forEach(c=>c.classList.remove('active'));
+    b.classList.add('active');redraw();
+  });
+  presetBox.appendChild(b);
+});
+function clearActivePreset(){[...presetBox.children].forEach(c=>c.classList.remove('active'));}
+
+/* 按钮 */
+const btnVideo=$('btnVideo');
+$('btnFlip').addEventListener('click',()=>{ currentPage=1; playAnim(); });
+$('btnImgCover').addEventListener('click',()=>exportPage('cover','圣诞贺卡-封面.png'));
+$('btnImgInside').addEventListener('click',()=>exportPage('inside','圣诞贺卡-内页.png'));
+btnVideo.addEventListener('click',recordVideo);
+
+/* toast */
+let toastTimer=null;
+function toast(msg){
+  const t=$('toast');t.textContent=msg;t.classList.add('show');
+  clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),2200);
+}
+
+/* 首绘：等待字体加载 */
+window.addEventListener('load',()=>{
+  if(document.fonts&&document.fonts.ready){
+    Promise.all([
+      document.fonts.load('900 76px "Noto Serif SC"'),
+      document.fonts.load('400 34px "Noto Sans SC"')
+    ]).finally(()=>renderProgress(currentPage));
+  } else renderProgress(currentPage);
+});
+renderProgress(0);
+</script>
+</body>
+</html>
