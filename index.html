@@ -600,7 +600,7 @@ let currentPage=0;
 let rafId=null, playing=false, startTime=0, onEnd=null;
 
 /* 完整序列时间轴（录制用） */
-const SEQ={holdEnv:0.6, open:2.6, holdCover:0.5, flip:2.9, holdInside:0.6};
+const SEQ={holdEnv:0.8, open:2.6, holdCover:0.8, flip:2.9, holdInside:2.9};
 const SEQ_TOTAL=SEQ.holdEnv+SEQ.open+SEQ.holdCover+SEQ.flip+SEQ.holdInside;
 function flipProgress(k){
   k=clamp01(k);
