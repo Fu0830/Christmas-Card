@@ -75,7 +75,7 @@
     display:flex;justify-content:center;box-shadow:0 18px 40px rgba(0,0,0,.45);
   }
   canvas#stage{width:100%;max-width:520px;height:auto;border-radius:14px;display:block;cursor:pointer}
-  .actions{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:16px}
+  .actions{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:16px}
   .btn{
     border:none;border-radius:14px;padding:14px 12px;font-size:14px;font-weight:600;cursor:pointer;
     font-family:inherit;letter-spacing:.5px;transition:transform .12s,filter .15s;
@@ -105,12 +105,12 @@
     <!-- ===== 控制面板 ===== -->
     <section class="panel">
       <h2>✍️ 贺卡文案</h2>
-      <div class="field"><label>收件人（称呼）</label><input type="text" id="inTo" maxlength="20" value="亲爱的小鱼饼饼"></div>
+      <div class="field"><label>收件人（称呼）</label><input type="text" id="inTo" maxlength="20" placeholder="例如：亲爱的小鱼饼饼"></div>
       <div class="field"><label>封面标题</label><input type="text" id="inTitle" maxlength="30" value="Merry Christmas"></div>
       <div class="field"><label>祝福内容（可换行）</label><textarea id="inMsg" maxlength="200">愿这个冬天有雪花、有星辰、有温热的拥抱，
 也有被星光照亮的好运气。
 新的一年，平安喜乐，万事胜意。</textarea></div>
-      <div class="field"><label>署名</label><input type="text" id="inFrom" maxlength="20" value="—— 豆包"></div>
+      <div class="field"><label>署名</label><input type="text" id="inFrom" maxlength="20" placeholder="例如：—— 豆包"></div>
       <div class="field"><label>日期</label><input type="text" id="inDate" maxlength="20" value="2026.12.25"></div>
 
       <h2 style="margin-top:22px">✨ 星尘配色</h2>
@@ -131,10 +131,11 @@
     <section class="stage">
       <div class="canvas-box"><canvas id="stage" width="1080" height="1440"></canvas></div>
       <div class="actions">
-        <button class="btn ghost" id="btnFlip">📖 翻开看看</button>
+        <button class="btn ghost" id="btnFlip">✉️ 拆信 / 翻开</button>
+        <button class="btn ghost" id="btnClose">🔒 合上贺卡</button>
         <button class="btn gold" id="btnImgCover">🖼 保存封面图</button>
         <button class="btn gold" id="btnImgInside">🖼 保存内页图</button>
-        <button class="btn primary" id="btnVideo">🎬 录制翻卡视频</button>
+        <button class="btn primary" id="btnVideo">🎬 录制视频</button>
       </div>
       <p class="hint">视频含信封拆信开场 + 翻卡动画，并配上圣诞背景音乐；图片为高清 PNG。</p>
     </section>
@@ -156,10 +157,10 @@ const canvas = document.getElementById('stage');
 const ctx = canvas.getContext('2d');
 
 const state = {
-  to: "亲爱的小鱼饼饼",
+  to: "",
   title: "Merry Christmas",
   msg: "愿这个冬天有雪花、有星辰、有温热的拥抱，\n也有被星光照亮的好运气。\n新的一年，平安喜乐，万事胜意。",
-  from: "—— 豆包",
+  from: "",
   date: "2026.12.25",
   col: {
     tree:"#b48cf2", ornament:"#f3e8ff", light:"#ffffff", star:"#ffffff",
@@ -397,9 +398,11 @@ function drawCoverOn(c){
   drawStarTreeOn(c,cx,1030,580,state.col);
 
   c.textAlign="center";
-  c.fillStyle=state.col.accent;
-  c.font=`500 34px "Noto Serif SC",serif`;
-  c.fillText(`致 ${state.to}`,cx,1210);
+  if(state.to.trim()){
+    c.fillStyle=state.col.accent;
+    c.font=`500 34px "Noto Serif SC",serif`;
+    c.fillText(`致 ${state.to}`,cx,1210);
+  }
   c.fillStyle=rgba(state.col.accent,.7);
   c.font=`400 26px "Noto Sans SC",sans-serif`;
   c.fillText("✨  愿星尘落满你的圣诞夜  ✨",cx,1280);
@@ -421,25 +424,34 @@ function drawInsideOn(c){
   c.beginPath();c.moveTo(W/2-180,292);c.lineTo(W/2+180,292);c.stroke();
 
   c.textAlign="left";
-  c.fillStyle=state.col.accent;
-  c.font=`700 44px "Noto Serif SC",serif`;
-  c.fillText(state.to,innerL,400);
+  let msgY=490;
+  if(state.to.trim()){
+    c.fillStyle=state.col.accent;
+    c.font=`700 44px "Noto Serif SC",serif`;
+    c.fillText(state.to,innerL,400);
+  } else { msgY=420; }
 
   c.fillStyle="#ece6f7";
   c.font=`400 34px "Noto Sans SC",sans-serif`;
   const lines=wrapText(c,state.msg,innerW);
-  let y=490;const lh=64;
+  let y=msgY;const lh=64;
   lines.forEach(line=>{c.fillText(line,innerL,y);y+=lh;});
 
   drawStarTreeOn(c,innerL+130,1180,250,state.col);
 
   c.textAlign="right";
-  c.fillStyle=state.col.accent;
-  c.font=`500 34px "Noto Serif SC",serif`;
-  c.fillText(state.from,innerR,1060);
-  c.fillStyle="rgba(236,230,247,.6)";
-  c.font=`400 28px "Noto Sans SC",sans-serif`;
-  c.fillText(state.date,innerR,1115);
+  let signY=1060;
+  if(state.from.trim()){
+    c.fillStyle=state.col.accent;
+    c.font=`500 34px "Noto Serif SC",serif`;
+    c.fillText(state.from,innerR,signY);
+    signY-=55;
+  }
+  if(state.date.trim()){
+    c.fillStyle="rgba(236,230,247,.6)";
+    c.font=`400 28px "Noto Sans SC",sans-serif`;
+    c.fillText(state.date,innerR,signY);
+  }
 
   c.textAlign="center";
   c.font=`30px "Noto Sans SC",sans-serif`;
@@ -630,7 +642,7 @@ function previewLoop(now){
     rafId=requestAnimationFrame(previewLoop);
   } else if(stage==='opening'){
     const p=(now-openingStart)/1000/SEQ.open;
-    if(p>=1){ stage='card'; currentPage=0; renderProgress(0); }
+    if(p>=1){ stage='card'; currentPage=0; renderProgress(0); updateButtons(); }
     else { drawEnvelopeScene(ctx,p,now); rafId=requestAnimationFrame(previewLoop); }
   }
 }
@@ -638,7 +650,41 @@ let openingStart=0;
 function startOpening(){
   stage='opening';
   openingStart=performance.now();
+  updateButtons();
   rafId=requestAnimationFrame(previewLoop);
+}
+
+function easeInOut(x){return x<0.5?2*x*x:1-Math.pow(-2*x+2,2)/2;}
+
+/* 合上贺卡：反向翻卡 → 卡片缩回信封 → 回到未拆状态 */
+let closingStart=0;
+function closeCard(){
+  if(stage!=='card')return;
+  stage='closing';
+  updateButtons();
+  closingStart=performance.now();
+  rafId=requestAnimationFrame(closingLoop);
+}
+function closingLoop(now){
+  const t=(now-closingStart)/1000;
+  const CLOSE_FLIP=1.1, CLOSE_ENV=1.1;
+  if(t<CLOSE_FLIP){
+    renderProgress(1-easeInOut(t/CLOSE_FLIP));
+  } else if(t<CLOSE_FLIP+CLOSE_ENV){
+    const p=1-(t-CLOSE_FLIP)/CLOSE_ENV;
+    drawEnvelopeScene(ctx,clamp01(p),now);
+  } else {
+    stage='envelope';currentPage=0;
+    updateButtons();
+    rafId=requestAnimationFrame(previewLoop);
+    return;
+  }
+  rafId=requestAnimationFrame(closingLoop);
+}
+
+function updateButtons(){
+  btnClose.disabled = stage!=='card';
+  $('btnFlip').disabled = (stage==='opening'||stage==='closing');
 }
 
 /* ============================================================
@@ -746,6 +792,7 @@ function recordLoop(now){
  * 控件绑定
  * ============================================================ */
 const $=id=>document.getElementById(id);
+const btnClose=$('btnClose');
 const inputs={to:$('inTo'),title:$('inTitle'),msg:$('inMsg'),from:$('inFrom'),date:$('inDate')};
 const colorInputs={tree:$('cTree'),ornament:$('cOrn'),light:$('cLight'),star:$('cStar'),gift:$('cGift'),accent:$('cAccent'),bg:$('cBg'),card:$('cCard')};
 
@@ -786,6 +833,7 @@ async function handleOpen(){
   }
 }
 $('btnFlip').addEventListener('click',handleOpen);
+btnClose.addEventListener('click',closeCard);
 canvas.addEventListener('click',handleOpen);
 $('btnImgCover').addEventListener('click',()=>exportPage('cover','圣诞贺卡-封面.png'));
 $('btnImgInside').addEventListener('click',()=>exportPage('inside','圣诞贺卡-内页.png'));
@@ -806,6 +854,7 @@ window.addEventListener('load',()=>{
   } else drawEnvelopeScene(ctx,0,performance.now());
 });
 drawEnvelopeScene(ctx,0,performance.now());
+updateButtons();
 rafId=requestAnimationFrame(previewLoop);
 </script>
 </body>
